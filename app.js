@@ -1,6 +1,7 @@
 const path = require('path');
 
 const express = require('express');
+const cors = require('cors')
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer')
@@ -8,9 +9,16 @@ const multer = require('multer')
 const MONGODB_URI = 'mongodb+srv://adekunlesa10:DekunleSamOye@nodeserver.midgx.mongodb.net/messages?retryWrites=true';
 
 const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
 const { error } = require('console');
 
 const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:3000', // Allow requests from this origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
 
 const fileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -49,12 +57,14 @@ app.use((req, res, next) => {
 });
 
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
     console.log(error);
     const status = error.statusCode || 500;
     const message = error.message;
-    res.status(status).json({message: message})
+    const data = error.data;
+    res.status(status).json({message: message, data: data })
 });
 
 mongoose
